@@ -2,7 +2,7 @@
 
 **Chương trình:** Học kỳ doanh nghiệp UTH – VNPT NET  
 **Đề tài:** N4.7  
-**Mã nhóm chương trình:** [Điền mã nhóm chính thức]  
+**Mã nhóm chương trình:** Nhóm 8  
 **Thời gian thực hiện:** 01/11/2026 – 06/03/2027
 
 ## 1. Giới thiệu
