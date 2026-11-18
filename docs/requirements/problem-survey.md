@@ -3,9 +3,9 @@
 **Dự án:** N4.7 – Xây dựng hệ thống giám sát máy chủ, Cloud và trung tâm dữ liệu  
 **Nhóm phụ trách:** Nhóm 1 – Phân tích và Thiết kế  
 **Mã Jira:** SCRUM-6  
-**Người thực hiện:** Nhóm 1  
+**Người thực hiện:** Ngô Thảo My
 **Ngày tạo:** 17/11/2026  
-**Ngày cập nhật:** 17/11/2026  
+**Ngày cập nhật:** 18/11/2026  
 **Người review:** Chờ review  
 **Trạng thái:** Draft
 
@@ -38,14 +38,15 @@ Trong phạm vi prototype ban đầu, nhóm định hướng triển khai trên 
 
 Nhóm định hướng sử dụng 3 máy ảo để mô phỏng môi trường hoạt động của hệ thống.
 
-| Máy ảo | Vai trò           | Thành phần dự kiến                                                               |
-| ------ | ----------------- | -------------------------------------------------------------------------------- |
-| VM1    | Monitoring Server | Ubuntu Server, Prometheus, Grafana, Alertmanager, Blackbox Exporter              |
-| VM2    | Web Server        | Ubuntu Server, Nginx, Node Exporter                                              |
-| VM3    | Database Server   | Ubuntu Server, MySQL hoặc PostgreSQL, Node Exporter, Database Exporter tương ứng |
+| Máy ảo | Vai trò           | Thành phần dự kiến                                                               | Hiện trạng |
+| ------ | ----------------- | -------------------------------------------------------------------------------- | ---------- |
+| VM1    | Monitoring Server | Ubuntu Server, Prometheus, Grafana, Alertmanager, Blackbox Exporter              | Dự kiến    |
+| VM2    | Web Server        | Ubuntu Server, Nginx, Node Exporter                                              | Dự kiến    |
+| VM3    | Database Server   | Ubuntu Server, MySQL hoặc PostgreSQL, Node Exporter, Database Exporter tương ứng | Dự kiến    |
 
 Ghi chú:
 
+- Cột "Hiện trạng" thể hiện tình trạng tại ngày cập nhật tài liệu (18/11/2026): các máy ảo thuộc kế hoạch triển khai của Nhóm 2 và chưa được ghi nhận là đã hoàn thành trong tài liệu này. Cập nhật cột này khi Nhóm 2 hoàn thành từng máy.
 - Node Exporter được triển khai trên các máy chủ Linux cần thu thập thông tin tài nguyên hệ điều hành, bao gồm VM2 và VM3. Có thể bổ sung trên VM1 để giám sát chính máy chủ Monitoring.
 - Blackbox Exporter được dự kiến đặt trên VM1 để kiểm tra khả năng truy cập các dịch vụ từ góc nhìn bên ngoài.
 - Database Exporter được lựa chọn theo hệ quản trị cơ sở dữ liệu mà nhóm quyết định sử dụng.
@@ -54,7 +55,13 @@ Ghi chú:
 
 ### 3.2. Tổng quan về giám sát Cloud
 
-Cloud Computing cung cấp tài nguyên và dịch vụ công nghệ thông tin thông qua mạng, thường bao gồm khả năng cung cấp tài nguyên theo nhu cầu, mở rộng linh hoạt và quản lý tài nguyên tập trung.
+Cloud Computing cung cấp tài nguyên và dịch vụ công nghệ thông tin thông qua mạng. Theo định nghĩa của NIST (tài liệu tham khảo số 8), Cloud Computing có năm đặc trưng thiết yếu:
+
+- **On-demand self-service:** Người sử dụng có thể tự yêu cầu và sử dụng tài nguyên theo nhu cầu mà không cần tương tác trực tiếp với nhà cung cấp cho từng lần cấp phát.
+- **Broad network access:** Tài nguyên và dịch vụ có thể được truy cập thông qua mạng bằng các cơ chế tiêu chuẩn.
+- **Resource pooling:** Tài nguyên của nhà cung cấp được tập hợp để phục vụ nhiều người sử dụng theo mô hình dùng chung.
+- **Rapid elasticity:** Tài nguyên có thể được cấp phát hoặc thu hồi linh hoạt theo nhu cầu.
+- **Measured service:** Việc sử dụng tài nguyên được đo lường, giám sát và báo cáo.
 
 Các đối tượng thường được quan tâm khi giám sát môi trường Cloud:
 
@@ -66,13 +73,13 @@ Các đối tượng thường được quan tâm khi giám sát môi trường 
 | Container                | Trạng thái container, mức sử dụng tài nguyên, tình trạng hoạt động |
 | Tài nguyên lưu trữ       | Dung lượng, khả năng truy cập, hiệu năng lưu trữ                   |
 
-Trong prototype ban đầu, nhóm có thể mô phỏng một số khía cạnh của môi trường Cloud thông qua các máy ảo Ubuntu Server, dịch vụ Web, Database và hệ thống giám sát tập trung.
+Trong prototype ban đầu, nhóm mô phỏng khía cạnh **giám sát máy chủ ảo** (tài nguyên máy ảo, trạng thái dịch vụ, kết nối và cảnh báo) bằng các máy ảo Ubuntu Server, dịch vụ Web, Database và hệ thống giám sát tập trung.
 
-Tuy nhiên, mô hình VM tự triển khai trên VirtualBox không đồng nghĩa với việc đã triển khai hoặc giám sát một nền tảng Cloud thực tế. Các thành phần như dịch vụ Cloud thương mại, API quản lý Cloud và tài nguyên Cloud chuyên biệt chưa nằm trong phạm vi đã xác nhận.
+Mô hình VM tự triển khai trên VirtualBox không đồng nghĩa với việc đã triển khai hoặc giám sát một nền tảng Cloud thực tế. Prototype không mô phỏng các đặc trưng của Cloud như khả năng tự cấp phát và mở rộng tài nguyên, API quản lý Cloud, mô hình nhiều người thuê hay dịch vụ Cloud thương mại. Các thành phần này chưa nằm trong phạm vi đã xác nhận.
 
 ### 3.3. Tổng quan về giám sát Data Center
 
-Data Center là môi trường tập trung nhiều thành phần hạ tầng công nghệ thông tin để cung cấp dịch vụ và lưu trữ, xử lý dữ liệu.
+Data Center là môi trường tập trung nhiều thành phần hạ tầng công nghệ thông tin để cung cấp dịch vụ, lưu trữ và xử lý dữ liệu.
 
 Các nhóm đối tượng thường được quan tâm khi giám sát:
 
@@ -84,6 +91,8 @@ Các nhóm đối tượng thường được quan tâm khi giám sát:
 | Máy chủ ảo hóa   | Máy chủ vật lý, máy ảo, tài nguyên được cấp phát   |
 | Hệ thống điện    | Nguồn điện, UPS, tình trạng cấp điện               |
 | Hệ thống làm mát | Nhiệt độ, độ ẩm, điều hòa và môi trường phòng máy  |
+
+**Lưu ý về nguồn tham khảo:** Danh sách trên hiện là kiến thức tổng quan của nhóm, chưa có tài liệu tham khảo chuyên biệt về Data Center trong danh sách ở mục 11. Vì vậy, nội dung này chỉ được sử dụng để định hướng khảo sát, chưa được xem là căn cứ kỹ thuật chính thức. Nhóm cần bổ sung nguồn phù hợp hoặc xin góp ý của mentor trước khi hoàn thiện báo cáo.
 
 Trong prototype ban đầu, nhóm có thể mô phỏng một phần hoạt động của hạ tầng máy chủ và dịch vụ bằng các VM, bao gồm giám sát tài nguyên, trạng thái dịch vụ, kết nối mạng và khả năng gửi cảnh báo.
 
@@ -119,14 +128,14 @@ Phạm vi prototype trên là định hướng ban đầu, chưa được xem l�
 
 Nhóm sử dụng mã định danh OBJ để phục vụ truy vết giữa đối tượng, vấn đề, yêu cầu và kiểm thử.
 
-| Mã đối tượng | Đối tượng                   | Mô tả                                                                 | Phạm vi                                     |
-| ------------ | --------------------------- | --------------------------------------------------------------------- | ------------------------------------------- |
-| OBJ01        | Máy chủ và hệ điều hành     | Tài nguyên CPU, RAM, Disk, Network và trạng thái hoạt động            | Prototype                                   |
-| OBJ02        | Dịch vụ Web                 | Khả năng truy cập, phản hồi và trạng thái dịch vụ Web                 | Prototype                                   |
-| OBJ03        | Cơ sở dữ liệu               | Khả năng kết nối và một số chỉ số hoạt động của Database              | Prototype                                   |
-| OBJ04        | Hệ thống Monitoring         | Prometheus, Grafana, Alertmanager và quá trình thu thập dữ liệu       | Prototype                                   |
-| OBJ05        | Hạ tầng Cloud và máy chủ ảo | Máy ảo, tài nguyên được cấp phát, kết nối và trạng thái dịch vụ Cloud | Khảo sát; mô phỏng một phần                 |
-| OBJ06        | Hạ tầng Data Center         | Máy chủ vật lý, thiết bị mạng, lưu trữ, điện và làm mát               | Khảo sát; chưa triển khai phần cứng thực tế |
+| Mã đối tượng | Đối tượng                | Mô tả                                                                            | Phạm vi                                                                   | Hiện trạng                     |
+| ------------ | ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------ |
+| OBJ01        | Máy chủ và hệ điều hành  | Tài nguyên CPU, RAM, Disk, Network và trạng thái hoạt động                       | Prototype                                                                 | Dự kiến triển khai             |
+| OBJ02        | Dịch vụ Web              | Khả năng truy cập, phản hồi và trạng thái dịch vụ Web                            | Prototype                                                                 | Dự kiến triển khai             |
+| OBJ03        | Cơ sở dữ liệu            | Khả năng kết nối và một số chỉ số hoạt động của Database                         | Prototype                                                                 | Dự kiến triển khai             |
+| OBJ04        | Hệ thống Monitoring      | Prometheus, Grafana, Alertmanager và quá trình thu thập dữ liệu                  | Prototype                                                                 | Dự kiến triển khai             |
+| OBJ05        | Bối cảnh Cloud và ảo hóa | Mô hình máy ảo, tài nguyên được cấp phát, kết nối và các đặc trưng quản lý Cloud | Khảo sát; prototype chỉ mô phỏng việc giám sát máy chủ ảo thông qua OBJ01 | Chưa có nền tảng Cloud thực tế |
+| OBJ06        | Hạ tầng Data Center      | Máy chủ vật lý, thiết bị mạng, lưu trữ, điện và làm mát                          | Khảo sát; chưa triển khai phần cứng thực tế                               | Chưa có thiết bị thực tế       |
 
 ### 4.1. Máy chủ và hệ điều hành (OBJ01)
 
@@ -141,7 +150,7 @@ Các khía cạnh cần quan tâm:
 - Thời gian hoạt động.
 - Khả năng kết nối và trạng thái máy chủ.
 
-Nguồn dữ liệu dự kiến: Node Exporter và các chỉ số do Prometheus cung cấp.
+Nguồn dữ liệu dự kiến (tạm thời, chốt ở giai đoạn Metrics và thiết kế): Node Exporter và các chỉ số do Prometheus cung cấp.
 
 ### 4.2. Dịch vụ Web (OBJ02)
 
@@ -155,7 +164,7 @@ Các khía cạnh cần quan tâm:
 - Mã trạng thái HTTP.
 - Khả năng phát hiện khi dịch vụ ngừng phản hồi.
 
-Nguồn dữ liệu dự kiến: Blackbox Exporter để kiểm tra dịch vụ từ bên ngoài. Các chỉ số nội bộ của Nginx có thể được xem xét bổ sung nếu cần.
+Nguồn dữ liệu dự kiến (tạm thời): Blackbox Exporter để kiểm tra dịch vụ từ bên ngoài. Các chỉ số nội bộ của Nginx có thể được xem xét bổ sung nếu cần.
 
 ### 4.3. Cơ sở dữ liệu (OBJ03)
 
@@ -163,7 +172,7 @@ Theo dõi khả năng hoạt động và tình trạng truy cập của hệ qu�
 
 Các khía cạnh cần quan tâm:
 
-| Nội dung                                                  | Nguồn kiểm tra dự kiến                                       |
+| Nội dung                                                  | Nguồn kiểm tra dự kiến (tạm thời)                            |
 | --------------------------------------------------------- | ------------------------------------------------------------ |
 | Máy chủ Database có thể kết nối qua TCP hay không         | Blackbox Exporter                                            |
 | Database có thể thực hiện kết nối hoặc truy vấn hay không | Database Exporter hoặc phương thức kiểm tra truy vấn phù hợp |
@@ -173,8 +182,9 @@ Các khía cạnh cần quan tâm:
 
 Lưu ý:
 
-- Kiểm tra TCP chỉ xác nhận cổng dịch vụ có thể truy cập, không chứng minh Database có thể xử lý truy vấn thành công.
-- Database Exporter cung cấp các chỉ số chuyên biệt về hệ quản trị cơ sở dữ liệu.
+- Kiểm tra TCP chỉ xác nhận cổng dịch vụ có thể truy cập, không chứng minh Database có thể xử lý kết nối hoặc truy vấn thành công.
+- Database Exporter cung cấp các chỉ số chuyên biệt về hệ quản trị cơ sở dữ liệu. Tuy nhiên, việc thu thập metrics thành công từ Database Exporter không thay thế hoàn toàn việc kiểm tra khả năng thực hiện truy vấn nghiệp vụ của ứng dụng.
+- Nếu prototype cần xác nhận khả năng truy vấn thực tế, nhóm cần lựa chọn phương thức kiểm tra truy vấn phù hợp và xác định rõ phạm vi kiểm tra.
 - Các nội dung phân tích hiệu năng Database chuyên sâu được xếp mức ưu tiên thấp trong prototype ban đầu.
 
 ### 4.4. Hệ thống Monitoring (OBJ04)
@@ -188,14 +198,25 @@ Các khía cạnh cần quan tâm:
 - Trạng thái các Target.
 - Hoạt động của Grafana và Alertmanager.
 - Khả năng xử lý và chuyển tiếp cảnh báo.
+- Khả năng gửi và nhận thông báo cảnh báo qua kênh được cấu hình.
 
-Nguồn dữ liệu dự kiến: Các chỉ số nội bộ của Prometheus, trạng thái dịch vụ và các phép kiểm tra phù hợp.
+Nguồn dữ liệu dự kiến (tạm thời): Các chỉ số nội bộ của Prometheus, trạng thái dịch vụ và các phép kiểm tra phù hợp.
 
-### 4.5. Hạ tầng Cloud và máy chủ ảo (OBJ05)
+Đối với việc kiểm tra gửi thông báo, cần thực hiện thử nghiệm đầu cuối từ lúc phát sinh cảnh báo đến khi thông báo được nhận tại kênh đích. Chỉ kiểm tra tiến trình Alertmanager đang chạy không đủ để khẳng định thông báo đã được gửi thành công.
 
-Khảo sát các đối tượng như máy ảo, tài nguyên được cấp phát, kết nối mạng và trạng thái dịch vụ Cloud.
+### 4.5. Bối cảnh Cloud và ảo hóa (OBJ05)
 
-Trong prototype, nhóm có thể sử dụng các VM trên VirtualBox để mô phỏng một phần hoạt động của máy chủ ảo.
+Khảo sát các khái niệm và thành phần liên quan đến Cloud Computing và công nghệ ảo hóa, bao gồm:
+
+- Máy ảo và tài nguyên được cấp phát.
+- Kết nối mạng giữa các máy ảo.
+- Khả năng quản lý và mở rộng tài nguyên.
+- Các dịch vụ và tài nguyên được cung cấp bởi nền tảng Cloud.
+- Các đặc trưng quản lý tài nguyên của môi trường Cloud.
+
+Trong prototype, nhóm sử dụng các VM trên VirtualBox để mô phỏng khía cạnh giám sát máy chủ ảo. Việc thu thập CPU, RAM, Disk, Network và trạng thái hoạt động của các VM được thực hiện thông qua phạm vi giám sát máy chủ tại OBJ01.
+
+Do đó, OBJ05 đóng vai trò mô tả **bối cảnh khảo sát Cloud và ảo hóa**, không phải một đối tượng giám sát độc lập đã được triển khai trong prototype.
 
 Các nội dung như quản lý tài nguyên qua API của nền tảng Cloud, giám sát dịch vụ Cloud thương mại và tích hợp nhiều nhà cung cấp chưa được xác nhận.
 
@@ -217,47 +238,65 @@ Các vấn đề được nhận diện từ việc phân tích các đối tư�
 
 Các mã PRB được dùng để truy vết vấn đề trong các giai đoạn tiếp theo.
 
-Mức ưu tiên:
+Mức ưu tiên (đề xuất của nhóm, chờ xác nhận ở mục 9, câu 6):
 
 - **Bắt buộc:** Cần có trong prototype ban đầu.
 - **Nên có:** Có giá trị thực tế, thực hiện nếu đủ thời gian và nguồn lực.
 - **Tùy chọn:** Nội dung mở rộng, chưa phải yêu cầu cốt lõi.
 
-| Mã vấn đề | Đối tượng | Vấn đề                                           | Ảnh hưởng                                                   | Nhu cầu giám sát tương ứng                                                            | Ưu tiên  |
-| --------- | --------- | ------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------- | -------- |
-| PRB01     | OBJ01     | CPU sử dụng quá cao                              | Hệ thống xử lý chậm, ảnh hưởng dịch vụ                      | Theo dõi mức sử dụng CPU và phát hiện khi vượt ngưỡng trong khoảng thời gian xác định | Bắt buộc |
-| PRB02     | OBJ01     | RAM sử dụng gần hết                              | Nguy cơ thiếu bộ nhớ, tiến trình bị ảnh hưởng               | Theo dõi mức sử dụng và dung lượng RAM còn khả dụng                                   | Bắt buộc |
-| PRB03     | OBJ01     | Dung lượng ổ đĩa gần đầy                         | Không thể ghi dữ liệu hoặc lưu trữ log                      | Theo dõi dung lượng đã sử dụng và còn khả dụng                                        | Bắt buộc |
-| PRB04     | OBJ01     | Máy chủ mất kết nối hoặc ngừng hoạt động         | Không thể truy cập hoặc sử dụng dịch vụ trên máy chủ        | Phát hiện trạng thái mất kết nối và thời gian không phản hồi                          | Bắt buộc |
-| PRB05     | OBJ02     | Dịch vụ Web ngừng hoạt động hoặc không phản hồi  | Người dùng không thể truy cập Web                           | Kiểm tra khả năng truy cập HTTP/HTTPS và trạng thái phản hồi                          | Bắt buộc |
-| PRB06     | OBJ02     | Thời gian phản hồi Web tăng bất thường           | Chất lượng dịch vụ suy giảm                                 | Theo dõi thời gian phản hồi và phát hiện khi vượt ngưỡng                              | Nên có   |
-| PRB07     | OBJ03     | Database không thể truy cập hoặc kết nối         | Ứng dụng không thể truy xuất dữ liệu                        | Kiểm tra kết nối TCP hoặc khả năng thực hiện truy vấn Database                        | Bắt buộc |
-| PRB08     | OBJ03     | Số lượng kết nối Database tăng cao               | Nguy cơ quá tải hoặc từ chối kết nối                        | Theo dõi số lượng kết nối đang sử dụng và giới hạn kết nối                            | Nên có   |
-| PRB09     | OBJ04     | Prometheus không thu thập được dữ liệu từ Target | Dashboard thiếu dữ liệu hoặc không phản ánh đúng trạng thái | Theo dõi trạng thái Target, kết quả scrape và lỗi thu thập                            | Bắt buộc |
-| PRB10     | OBJ04     | Alertmanager không gửi được thông báo            | Người quản trị không nhận được cảnh báo                     | Theo dõi trạng thái chuyển tiếp và lỗi gửi thông báo                                  | Nên có   |
+| Mã vấn đề | Đối tượng | Vấn đề                                           | Ảnh hưởng                                                   | Nhu cầu giám sát tương ứng                                                               | Ưu tiên  |
+| --------- | --------- | ------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------- |
+| PRB01     | OBJ01     | CPU sử dụng quá cao                              | Hệ thống xử lý chậm, ảnh hưởng dịch vụ                      | Theo dõi mức sử dụng CPU và phát hiện khi vượt ngưỡng trong khoảng thời gian xác định    | Bắt buộc |
+| PRB02     | OBJ01     | RAM sử dụng gần hết                              | Nguy cơ thiếu bộ nhớ, tiến trình bị ảnh hưởng               | Theo dõi mức sử dụng và dung lượng RAM còn khả dụng                                      | Bắt buộc |
+| PRB03     | OBJ01     | Dung lượng ổ đĩa gần đầy                         | Không thể ghi dữ liệu hoặc lưu trữ log                      | Theo dõi dung lượng đã sử dụng và còn khả dụng                                           | Bắt buộc |
+| PRB04     | OBJ01     | Máy chủ mất kết nối hoặc ngừng hoạt động         | Không thể truy cập hoặc sử dụng dịch vụ trên máy chủ        | Phát hiện trạng thái mất kết nối và thời gian không phản hồi                             | Bắt buộc |
+| PRB05     | OBJ02     | Dịch vụ Web ngừng hoạt động hoặc không phản hồi  | Người dùng không thể truy cập Web                           | Kiểm tra khả năng truy cập HTTP/HTTPS và trạng thái phản hồi                             | Bắt buộc |
+| PRB06     | OBJ02     | Thời gian phản hồi Web tăng bất thường           | Chất lượng dịch vụ suy giảm                                 | Theo dõi thời gian phản hồi và phát hiện khi vượt ngưỡng                                 | Nên có   |
+| PRB07     | OBJ03     | Database không thể truy cập hoặc kết nối         | Ứng dụng không thể truy xuất dữ liệu                        | Kiểm tra kết nối TCP và/hoặc khả năng thực hiện truy vấn Database theo phạm vi được chọn | Bắt buộc |
+| PRB08     | OBJ03     | Số lượng kết nối Database tăng cao               | Nguy cơ quá tải hoặc từ chối kết nối                        | Theo dõi số lượng kết nối đang sử dụng và giới hạn kết nối                               | Nên có   |
+| PRB09     | OBJ04     | Prometheus không thu thập được dữ liệu từ Target | Dashboard thiếu dữ liệu hoặc không phản ánh đúng trạng thái | Theo dõi trạng thái Target, kết quả scrape và lỗi thu thập                               | Bắt buộc |
+| PRB10     | OBJ04     | Alertmanager không gửi được thông báo            | Người quản trị không nhận được cảnh báo                     | Theo dõi trạng thái chuyển tiếp, lỗi gửi thông báo và kiểm thử nhận thông báo đầu cuối   | Nên có   |
 
 Ghi chú:
 
 - Các vấn đề trên là kết quả khảo sát ban đầu, chưa phải toàn bộ danh sách Metrics hoặc điều kiện kích hoạt cảnh báo chính thức.
 - Những ngưỡng cảnh báo, thời gian duy trì và độ trễ thông báo sẽ được xác định ở các giai đoạn yêu cầu và thiết kế.
 - Những vấn đề thuộc Cloud và Data Center ngoài prototype được giữ trong phạm vi khảo sát, chưa được cam kết triển khai.
+- PRB04 và PRB09 là hai vấn đề khác nhau: máy chủ mất kết nối không đồng nghĩa với việc chỉ một tiến trình exporter không thể cung cấp dữ liệu.
 
 ### 5.1. Ánh xạ sơ bộ với các tình huống cảnh báo
 
-Bảng dưới đây là đề xuất ánh xạ để chuẩn bị cho việc xây dựng sáu tình huống cảnh báo S1–S6 trong kế hoạch dự án. Cần đối chiếu và xác nhận lại với danh sách tình huống cảnh báo chính thức trước khi chốt.
+Bảng dưới đây ánh xạ các vấn đề PRB với sáu tình huống cảnh báo S1–S6 trong kế hoạch dự án (mục "Tình huống cảnh báo") và tiêu chí nghiệm thu dự kiến.
 
-| Mã tình huống | Vấn đề liên quan | Mô tả tình huống dự kiến                                               |
-| ------------- | ---------------- | ---------------------------------------------------------------------- |
-| S1            | PRB01            | CPU sử dụng vượt ngưỡng trong khoảng thời gian xác định                |
-| S2            | PRB02            | RAM sử dụng vượt ngưỡng                                                |
-| S3            | PRB03            | Dung lượng ổ đĩa sử dụng vượt ngưỡng                                   |
-| S4            | PRB04            | Máy chủ mất kết nối hoặc không còn hoạt động                           |
-| S5            | PRB05            | Dịch vụ Web không thể truy cập hoặc không phản hồi                     |
-| S6            | PRB07            | Database không thể truy cập hoặc không thực hiện được kết nối kiểm tra |
+Thứ tự S1–S6 là đề xuất của nhóm. Các mã AC03–AC08 là mã tiêu chí nghiệm thu dự kiến, cần được đối chiếu với tài liệu test plan và bộ tiêu chí nghiệm thu chính thức trước khi sử dụng làm mã tham chiếu trong các tài liệu khác.
+
+| Mã tình huống | Tình huống                                          | Vấn đề liên quan | Tiêu chí nghiệm thu dự kiến |
+| ------------- | --------------------------------------------------- | ---------------- | --------------------------- |
+| S1            | Máy chủ mất kết nối (Host Down)                     | PRB04            | AC03 (dự kiến)              |
+| S2            | CPU vượt ngưỡng (CPU High)                          | PRB01            | AC04 (dự kiến)              |
+| S3            | RAM vượt ngưỡng (Memory High)                       | PRB02            | AC05 (dự kiến)              |
+| S4            | Disk gần đầy (Disk Usage High)                      | PRB03            | AC06 (dự kiến)              |
+| S5            | Nginx ngừng hoạt động (Web Service Down)            | PRB05            | AC07 (dự kiến)              |
+| S6            | Database không truy cập được (Database Unreachable) | PRB07            | AC08 (dự kiến)              |
 
 Các vấn đề PRB06, PRB08, PRB09 và PRB10 vẫn được ghi nhận trong khảo sát. Việc đưa chúng vào bộ tình huống cảnh báo nghiệm thu sẽ được xem xét trong các giai đoạn tiếp theo.
 
+### 5.2. Phân biệt nguồn phát hiện sự cố
+
+Các sự cố dưới đây có thể có biểu hiện giống nhau (ví dụ khi một máy tắt, nhiều dịch vụ trên máy đó cùng không phản hồi), nhưng bản chất khác nhau và nên được phát hiện từ nguồn khác nhau. Không nên dùng một chỉ số duy nhất để đại diện cho tất cả.
+
+| Sự cố                                            | Câu hỏi cần trả lời                                                            | Hướng nguồn phát hiện (định hướng, chốt ở thiết kế)                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| PRB04 – Máy chủ mất kết nối                      | Máy chủ còn truy cập được từ bên ngoài không?                                  | Kiểm tra từ bên ngoài (ví dụ Blackbox qua ICMP hoặc TCP)                            |
+| PRB05 – Web ngừng hoạt động                      | Dịch vụ Web có phản hồi đúng không?                                            | Blackbox kiểm tra HTTP                                                              |
+| PRB07 – Database không truy cập được             | Cổng Database mở không, và Database có xử lý được kết nối hoặc truy vấn không? | Blackbox kiểm tra TCP; Database Exporter hoặc phương thức kiểm tra truy vấn phù hợp |
+| PRB09 – Prometheus không thu thập được từ Target | Prometheus có lấy được dữ liệu từ Target không?                                | Trạng thái scrape của Target trong Prometheus                                       |
+
+Ví dụ: khi Node Exporter dừng nhưng máy chủ vẫn chạy, Prometheus không thu thập được dữ liệu từ Target (PRB09) nhưng máy chủ chưa chắc đã mất kết nối (PRB04). Chi tiết cách phân biệt được xác định ở giai đoạn thiết kế.
+
 ## 6. Nhu cầu tổng quan của hệ thống
+
+Mục này ghi nhận nhu cầu ở mức tổng quan, ở trạng thái Draft. Yêu cầu chức năng và phi chức năng chi tiết sẽ nằm trong tài liệu yêu cầu.
 
 Từ các vấn đề đã xác định, hệ thống cần đáp ứng những nhu cầu tổng quan sau:
 
@@ -282,6 +321,7 @@ Từ các vấn đề đã xác định, hệ thống cần đáp ứng những 
 - Cho phép cấu hình điều kiện và ngưỡng cảnh báo.
 - Gửi thông báo khi phát hiện sự cố.
 - Có khả năng thông báo khi tình trạng hoạt động được khôi phục.
+- Có phương án kiểm thử để xác nhận thông báo được chuyển đến kênh nhận cảnh báo.
 
 ### 6.4. Quản lý và mở rộng
 
@@ -310,6 +350,7 @@ Lưu ý:
 
 - Node Exporter và Blackbox Exporter có vai trò khác nhau. Node Exporter cung cấp dữ liệu hệ điều hành; Blackbox Exporter thực hiện phép kiểm tra từ bên ngoài đối với một dịch vụ hoặc endpoint.
 - Blackbox Exporter không thay thế Database Exporter.
+- Database Exporter cung cấp metrics của hệ quản trị cơ sở dữ liệu, nhưng không mặc nhiên xác nhận mọi truy vấn nghiệp vụ của ứng dụng đều thành công.
 - Các công nghệ trên là định hướng ban đầu, cần được kiểm chứng trong quá trình thiết kế và triển khai prototype.
 
 ## 8. Giới hạn khảo sát và triển khai
@@ -332,10 +373,12 @@ Trong giai đoạn đầu, nhóm tập trung vào prototype trên môi trường
 - Giám sát UPS, nguồn điện, hệ thống làm mát và cảm biến môi trường.
 - Tích hợp đầy đủ với API của các nền tảng Cloud thương mại.
 - Giám sát Kubernetes hoặc hạ tầng container quy mô lớn.
-- Mô phỏng nhiều Data Center hoặc nhiều site độc lập, trừ khi được nhóm thống nhất bổ sung.
+- Mô phỏng nhiều Data Center hoặc nhiều site độc lập bằng hạ tầng riêng, trừ khi được nhóm thống nhất bổ sung.
 - Tự động khắc phục sự cố.
 - Giám sát bảo mật chuyên sâu.
 - Triển khai hệ thống phân tán quy mô lớn.
+
+Ghi chú: kế hoạch dự án có phương án mức nhẹ là gắn nhãn site, env, role cho các VM để nhóm dashboard theo site (do Nhóm 2 và Nhóm 3 thực hiện). Phương án này không làm thay đổi phạm vi chính thức và chỉ được đưa vào phạm vi sau khi xác nhận ở mục 9, câu 3.
 
 Các nội dung trên có thể được xem xét mở rộng nếu có yêu cầu từ mentor và đủ nguồn lực thực hiện.
 
@@ -343,20 +386,22 @@ Các nội dung trên có thể được xem xét mở rộng nếu có yêu c�
 
 Các nội dung dưới đây chưa được chốt. Nhóm cần phân biệt vấn đề nào có thể tự quyết định và vấn đề nào cần mentor xác nhận.
 
-| STT | Nội dung cần xác nhận                                               | Người phụ trách xác nhận                      | Hạn dự kiến                     | Trạng thái      |
-| --- | ------------------------------------------------------------------- | --------------------------------------------- | ------------------------------- | --------------- |
-| 1   | Có bắt buộc triển khai giám sát Cloud thực tế hay chỉ cần mô phỏng? | Nhóm 1 đề xuất, Mentor xác nhận               | Tuần 6                          | Chưa xác nhận   |
-| 2   | Có cần mô phỏng thêm thành phần đặc trưng của Data Center không?    | Nhóm 1 đề xuất, Mentor xác nhận               | Tuần 6                          | Chưa xác nhận   |
-| 3   | Có cần mô phỏng nhiều site hoặc nhiều cụm máy chủ không?            | Nhóm 1 đề xuất, Mentor xác nhận               | Tuần 6                          | Chưa xác nhận   |
-| 4   | Sử dụng MySQL hay PostgreSQL?                                       | Nhóm 2 đề xuất và quyết định, phối hợp Nhóm 3 | Trước khi dựng VM3 trong Tuần 5 | Chưa quyết định |
-| 5   | Số lượng máy chủ tối thiểu cần giám sát khi nghiệm thu?             | Nhóm 1 đề xuất, Mentor xác nhận               | Tuần 6                          | Chưa xác nhận   |
-| 6   | Những tiêu chí cụ thể dùng để đánh giá prototype?                   | Nhóm 1 tổng hợp, Mentor xác nhận              | Tuần 6                          | Chưa xác nhận   |
+| STT | Nội dung cần xác nhận                                               | Người phụ trách xác nhận                      | Ngày gửi câu hỏi | Hạn dự kiến                     | Trạng thái      |
+| --- | ------------------------------------------------------------------- | --------------------------------------------- | ---------------- | ------------------------------- | --------------- |
+| 1   | Có bắt buộc triển khai giám sát Cloud thực tế hay chỉ cần mô phỏng? | Nhóm 1 đề xuất, Mentor xác nhận               | Chưa gửi         | Tuần 6                          | Chưa xác nhận   |
+| 2   | Có cần mô phỏng thêm thành phần đặc trưng của Data Center không?    | Nhóm 1 đề xuất, Mentor xác nhận               | Chưa gửi         | Tuần 6                          | Chưa xác nhận   |
+| 3   | Có cần mô phỏng nhiều site hoặc nhiều cụm máy chủ không?            | Nhóm 1 đề xuất, Mentor xác nhận               | Chưa gửi         | Tuần 6                          | Chưa xác nhận   |
+| 4   | Sử dụng MySQL hay PostgreSQL?                                       | Nhóm 2 đề xuất và quyết định, phối hợp Nhóm 3 | Không cần        | Trước khi dựng VM3 trong Tuần 5 | Chưa quyết định |
+| 5   | Số lượng máy chủ tối thiểu cần giám sát khi nghiệm thu?             | Nhóm 1 đề xuất, Mentor xác nhận               | Chưa gửi         | Tuần 6                          | Chưa xác nhận   |
+| 6   | Những tiêu chí cụ thể và mức ưu tiên dùng để đánh giá prototype?    | Nhóm 1 tổng hợp, Mentor xác nhận              | Chưa gửi         | Tuần 6                          | Chưa xác nhận   |
 
 Ghi chú:
 
 - Nhóm có thể chủ động quyết định các lựa chọn kỹ thuật nội bộ nếu không làm thay đổi phạm vi, tiêu chí nghiệm thu hoặc yêu cầu của mentor.
 - Việc lựa chọn MySQL hay PostgreSQL cần được thống nhất với Nhóm 3 để bảo đảm exporter và phương pháp giám sát tương ứng.
 - Các nội dung liên quan đến Cloud, Data Center và tiêu chí nghiệm thu cần được xác nhận trước khi chốt thiết kế.
+- Nên gửi câu hỏi cho mentor sớm (tuần 3–4) để tuần 6 chỉ cần chốt.
+- Sau khi nhận phản hồi, Nhóm 1 cần cập nhật trạng thái, nội dung xác nhận và phạm vi tương ứng trong tài liệu.
 
 ## 10. Kết luận
 
@@ -366,22 +411,27 @@ Trong phạm vi prototype, nhóm định hướng sử dụng ba máy ảo để
 
 Các vấn đề vận hành đã được mã hóa và phân loại theo đối tượng, nhu cầu giám sát và mức ưu tiên. Đây là cơ sở để tiếp tục xác định Metrics, xây dựng tình huống cảnh báo, phân tích yêu cầu và thiết kế hệ thống trong các giai đoạn tiếp theo.
 
-Phạm vi giám sát Cloud và Data Center thực tế vẫn cần được xác nhận với mentor trước khi mở rộng prototype.
+Phạm vi giám sát Cloud và Data Center thực tế vẫn cần được xác nhận với mentor trước khi mở rộng prototype. Việc mô phỏng máy ảo bằng VirtualBox chỉ thể hiện một phần khía cạnh giám sát máy chủ ảo, không được xem là triển khai một nền tảng Cloud hoặc Data Center hoàn chỉnh.
 
 ## 11. Tài liệu tham khảo
 
 Các tài liệu dưới đây được sử dụng để tìm hiểu công nghệ giám sát và các thành phần kỹ thuật dự kiến. Danh sách vấn đề vận hành trong tài liệu là kết quả phân tích ban đầu của nhóm dựa trên các đối tượng khảo sát, không phải nội dung sao chép nguyên văn từ một nguồn duy nhất.
 
 1. Prometheus Documentation – Overview: https://prometheus.io/docs/introduction/overview/
-2. Prometheus Documentation – Node Exporter Guide: https://prometheus.io/docs/guides/node-exporter/
-3. Prometheus Documentation – Alerting: https://prometheus.io/docs/alerting/latest/overview/
-4. Prometheus Documentation – Blackbox Exporter: https://prometheus.io/docs/guides/multi-target-exporter/
-5. Grafana Documentation: https://grafana.com/docs/grafana/latest/
-6. NIST Special Publication 800-145 – The NIST Definition of Cloud Computing: https://doi.org/10.6028/NIST.SP.800-145
-7. Prometheus MySQL Exporter – https://github.com/prometheus/mysqld_exporter
-8. Prometheus PostgreSQL Exporter – https://github.com/prometheus-community/postgres_exporter
+2. Prometheus Documentation – Monitoring Linux host metrics with the Node Exporter: https://prometheus.io/docs/guides/node-exporter/
+3. Prometheus Documentation – Alerting overview: https://prometheus.io/docs/alerting/latest/overview/
+4. Prometheus Documentation – Understanding and using the multi-target exporter pattern (dùng Blackbox Exporter làm ví dụ): https://prometheus.io/docs/guides/multi-target-exporter/
+5. Blackbox Exporter: https://github.com/prometheus/blackbox_exporter
+6. Grafana Documentation: https://grafana.com/docs/grafana/latest/
+7. Prometheus MySQL Exporter: https://github.com/prometheus/mysqld_exporter
+8. NIST Special Publication 800-145 – The NIST Definition of Cloud Computing: https://doi.org/10.6028/NIST.SP.800-145
+9. Prometheus PostgreSQL Exporter: https://github.com/prometheus-community/postgres_exporter
 
-Các tài liệu này cần được đối chiếu với phiên bản công cụ mà nhóm thực tế sử dụng trong giai đoạn triển khai.
+Ghi chú:
+
+- Các tài liệu này cần được đối chiếu với phiên bản công cụ mà nhóm thực tế sử dụng trong giai đoạn triển khai.
+- Định nghĩa và năm đặc trưng Cloud tại mục 3.2 được tham khảo từ tài liệu số 8.
+- Nội dung mục 3.3 (Data Center) hiện là kiến thức tổng quan của nhóm, chưa có tài liệu tham khảo chuyên biệt. Cần bổ sung nguồn phù hợp trước khi hoàn thiện báo cáo chính thức.
 
 ---
 
