@@ -63,21 +63,21 @@ Một Metric vượt ngưỡng trong thời gian ngắn không nhất thiết ph
 
 ### 3.2. Các trạng thái cảnh báo
 
-| Trạng thái | Ý nghĩa                                                                        |
-| ---------- | ------------------------------------------------------------------------------ |
-| Inactive   | Điều kiện cảnh báo chưa được thỏa mãn                                          |
-| Pending    | Điều kiện đã được thỏa mãn nhưng chưa đủ thời gian duy trì theo cấu hình `for` |
-| Firing     | Điều kiện cảnh báo đã thỏa mãn và đủ thời gian duy trì                         |
-| Resolved   | Điều kiện cảnh báo không còn thỏa mãn và cảnh báo đã được giải quyết           |
+| Trạng thái | Ý nghĩa                                                                                                                          |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Inactive   | Điều kiện cảnh báo chưa được thỏa mãn                                                                                            |
+| Pending    | Điều kiện đã được thỏa mãn nhưng chưa đủ thời gian duy trì theo cấu hình `for`                                                   |
+| Firing     | Điều kiện cảnh báo đã thỏa mãn và đủ thời gian duy trì                                                                           |
+| Resolved   | Điều kiện kích hoạt không còn thỏa mãn; Alert không còn ở trạng thái Firing và có thể phát sinh thông báo phục hồi tùy cấu hình. |
 
 Lưu ý:
 
-- Pending và Firing là các trạng thái được sử dụng trong quá trình đánh giá Alert Rule.
-- Alertmanager tiếp nhận các Alert từ Prometheus để xử lý và gửi notification.
+- Inactive, Pending và Firing là các trạng thái trong quá trình đánh giá Alert Rule của Prometheus.
+- Alertmanager tiếp nhận các Alert từ Prometheus để thực hiện grouping, routing, inhibition và gửi notification.
 - Alert chuyển sang Firing không đồng nghĩa notification đã được gửi thành công.
-- Notification Resolved phụ thuộc cấu hình gửi thông báo và chính sách xử lý của Alertmanager.
+- Khi điều kiện cảnh báo không còn thỏa mãn, Prometheus ngừng gửi Alert ở trạng thái Firing; Alertmanager có thể gửi notification Resolved tùy cấu hình.
 
-### 3.3. Mức độ ưu tiên
+### 3.3. Mức độ nghiêm trọng (Severity)
 
 | Mức độ   | Ý nghĩa                                                                                             | Cách sử dụng dự kiến                                 |
 | -------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
@@ -88,25 +88,52 @@ Mức độ cụ thể của từng Alert sẽ được xác nhận khi thiết 
 
 ### 3.4. Nguyên tắc xác định thời gian cảnh báo
 
-Thời gian cảnh báo có thể bao gồm:
+Thời gian cảnh báo phụ thuộc vào quá trình thu thập Metrics, đánh giá Alert Rule và xử lý notification của Alertmanager.
 
-- Thời gian chờ đến lần scrape tiếp theo.
-- Thời gian chờ đến lần đánh giá Alert Rule tiếp theo.
-- Thời gian duy trì điều kiện cảnh báo (`for`).
-- Thời gian chờ nhóm notification (`group_wait`).
-- Thời gian xử lý và gửi notification.
+Các thành phần cần xem xét:
 
-Công thức ước lượng:
+- Scrape Interval: Khoảng thời gian giữa các lần Prometheus thu thập Metrics.
+- Evaluation Interval: Khoảng thời gian giữa các lần Prometheus đánh giá Alert Rules.
+- `for`: Thời gian điều kiện cảnh báo phải duy trì trước khi Alert chuyển sang Firing.
+- `group_wait`: Thời gian Alertmanager chờ trước khi gửi notification đầu tiên của một nhóm Alert mới.
+- `group_interval`: Khoảng thời gian chờ trước khi gửi notification cập nhật cho một nhóm Alert đã tồn tại.
+- `repeat_interval`: Khoảng thời gian trước khi gửi lại notification đối với Alert vẫn đang tiếp diễn.
+- Notification Delivery Delay: Thời gian xử lý và truyền notification đến receiver.
 
-`Alert Latency ≈ Scrape Delay + Evaluation Delay + Rule Duration + Group Wait + Notification Delay`
+Công thức ước lượng Detection Time:
 
-Đây là công thức ước lượng, không phải cam kết các thành phần luôn cộng tuyến tính. Thời gian thực tế cần được đo trong quá trình kiểm thử.
+`Detection Time ≈ Scrape Delay + Evaluation Delay + for Duration`
+
+Thời gian gửi notification còn phụ thuộc vào trạng thái nhóm Alert:
+
+- Với nhóm Alert mới, Alertmanager có thể chờ theo `group_wait`.
+- Với nhóm Alert đã tồn tại, notification cập nhật có thể chịu ảnh hưởng của `group_interval`.
+- `repeat_interval` áp dụng cho việc gửi lại notification, không phải thời gian chờ mặc định của notification đầu tiên.
+
+Do đó, không nên cộng máy móc tất cả các thành phần vào một công thức duy nhất. Thời gian thực tế cần được đo trong quá trình kiểm thử.
 
 Cần phân biệt:
 
 - **Detection Time:** Thời gian từ khi sự cố bắt đầu đến khi Alert chuyển sang Firing.
 - **Notification Time:** Thời gian từ khi sự cố bắt đầu đến khi thông báo được nhận tại kênh nhận.
 - **Recovery Time:** Thời gian từ khi khắc phục sự cố đến khi nhận được thông báo Resolved.
+
+### 3.5. Quy ước tham số cảnh báo
+
+| Ký hiệu | Ý nghĩa                                                                      | Ví dụ                                                                                             |
+| ------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `Y_*`   | Ngưỡng kích hoạt cảnh báo                                                    | `Y_CPU`, `Y_RAM`, `Y_DISK`                                                                        |
+| `F_*`   | Thời gian điều kiện cảnh báo phải duy trì liên tục, tương ứng cấu hình `for` | `F_CPU`, `F_RAM`, `F_DISK`, `F_HOST`, `F_WEB_DOWN`, `F_WEB_TIME`, `F_DB`, `F_DB_CONN`, `F_SCRAPE` |
+| `X_*`   | Thời gian tối đa được phép theo Acceptance Criteria                          | Thời gian phát hiện hoặc nhận notification                                                        |
+| `W_*`   | Thời gian tối đa để nhận notification phục hồi theo Acceptance Criteria      | Recovery Notification Time                                                                        |
+
+Các giá trị cụ thể của tham số sẽ được xác định trong giai đoạn Baseline và thống nhất với Acceptance Criteria.
+
+Lưu ý:
+
+- `F_*` là thời gian duy trì điều kiện kích hoạt Alert Rule, không phải tổng thời gian phát hiện sự cố.
+- `X_*` và `W_*` là các giới hạn nghiệm thu, không phải tham số cấu hình Prometheus.
+- Ngưỡng phục hồi cần được xác định riêng khi cần áp dụng cơ chế hysteresis.
 
 ## 4. Host Alert Scenarios
 
@@ -139,19 +166,19 @@ Lưu ý:
 
 **Mục đích:** Phát hiện tình trạng bộ nhớ khả dụng thấp trên máy chủ.
 
-| Thuộc tính         | Nội dung                                                                                                             |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Alert ID           | AS-02                                                                                                                |
-| Tên tình huống     | Memory Available Low                                                                                                 |
-| Mô tả              | Lượng RAM khả dụng giảm xuống dưới ngưỡng, có thể khiến hệ thống tăng sử dụng Swap hoặc gặp tình trạng thiếu bộ nhớ. |
-| Metric chính       | `node_memory_MemAvailable_bytes` hoặc RAM Usage (%)                                                                  |
-| Metric hỗ trợ      | `node_memory_SwapFree_bytes`, `node_memory_SwapTotal_bytes`                                                          |
-| Trigger Condition  | RAM Usage vượt ngưỡng Y_RAM% hoặc MemAvailable giảm dưới ngưỡng đã xác định trong F_RAM phút.                        |
-| Severity           | Warning                                                                                                              |
-| Expected Result    | Prometheus phát sinh Alert và Alertmanager gửi thông báo về tình trạng RAM khả dụng thấp.                            |
-| Test Method        | Sử dụng công cụ tạo tải bộ nhớ có kiểm soát, theo dõi MemAvailable và trạng thái cảnh báo.                           |
-| Recovery Condition | MemAvailable tăng trở lại hoặc RAM Usage giảm xuống dưới ngưỡng phục hồi đã thống nhất.                              |
-| Related Problem    | PRB02 – RAM utilization cao                                                                                          |
+| Thuộc tính         | Nội dung                                                                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Alert ID           | AS-02                                                                                                                                                                                            |
+| Tên tình huống     | Memory Available Low                                                                                                                                                                             |
+| Mô tả              | Lượng RAM khả dụng giảm xuống dưới ngưỡng, có thể khiến hệ thống tăng sử dụng Swap hoặc gặp tình trạng thiếu bộ nhớ.                                                                             |
+| Metric chính       | `node_memory_MemAvailable_bytes` hoặc RAM Usage (%)                                                                                                                                              |
+| Metric hỗ trợ      | `node_memory_SwapFree_bytes`, `node_memory_SwapTotal_bytes`                                                                                                                                      |
+| Trigger Condition  | RAM Usage vượt ngưỡng Y_RAM_USAGE% hoặc MemAvailable giảm dưới ngưỡng Y_MEM_AVAILABLE trong F_RAM phút. Nhóm triển khai cần lựa chọn và thống nhất phương pháp đo trước khi cấu hình Alert Rule. |
+| Severity           | Warning                                                                                                                                                                                          |
+| Expected Result    | Prometheus phát sinh Alert và Alertmanager gửi thông báo về tình trạng RAM khả dụng thấp.                                                                                                        |
+| Test Method        | Sử dụng công cụ tạo tải bộ nhớ có kiểm soát, theo dõi MemAvailable và trạng thái cảnh báo.                                                                                                       |
+| Recovery Condition | Chỉ số được sử dụng trong Trigger Condition trở về vùng an toàn theo ngưỡng phục hồi đã thống nhất.                                                                                              |
+| Related Problem    | PRB02 – RAM utilization cao                                                                                                                                                                      |
 
 Lưu ý:
 
@@ -170,7 +197,7 @@ Lưu ý:
 | Mô tả              | Dung lượng filesystem sử dụng vượt ngưỡng, có thể khiến Database không ghi được dữ liệu hoặc dịch vụ không thể tạo file log và file tạm. |
 | Metric chính       | Disk Usage (%) – Derived từ `node_filesystem_size_bytes` và `node_filesystem_avail_bytes`                                                |
 | Metric hỗ trợ      | `node_filesystem_avail_bytes`, `node_filesystem_free_bytes`                                                                              |
-| Trigger Condition  | Disk Usage vượt ngưỡng Y_DISK% trên filesystem thuộc phạm vi giám sát.                                                                   |
+| Trigger Condition  | Disk Usage vượt ngưỡng Y_DISK% trên filesystem thuộc phạm vi giám sát liên tục trong F_DISK phút.                                        |
 | Severity           | Warning                                                                                                                                  |
 | Expected Result    | Prometheus phát sinh Alert và Alertmanager gửi thông báo về filesystem có dung lượng sử dụng cao.                                        |
 | Test Method        | Tạo file có dung lượng lớn trong filesystem thử nghiệm để tăng mức sử dụng Disk có kiểm soát.                                            |
@@ -267,21 +294,20 @@ Lưu ý:
 
 ### 6.1. AS-07 – Database Unreachable
 
-**Mục đích:** Phát hiện Database không thể truy cập từ vị trí giám sát.
-
-| Thuộc tính         | Nội dung                                                                                                              |
+**Mục đích:** Không thể thiết lập kết nối TCP đến cổng dịch vụ Database từ vị trí giám sát.
+| Thuộc tính | Nội dung |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| Alert ID           | AS-07                                                                                                                 |
-| Tên tình huống     | Database Unreachable                                                                                                  |
-| Mô tả              | Không thể thiết lập kết nối đến cổng dịch vụ Database hoặc Database không thể cung cấp dữ liệu cho exporter.          |
-| Metric chính       | `probe_success` (TCP)                                                                                                 |
-| Metric hỗ trợ      | `up` của Database Exporter; SQL Availability Check nếu được triển khai                                                |
-| Trigger Condition  | TCP probe đến cổng Database thất bại liên tục trong khoảng thời gian F_DB.                                            |
-| Severity           | Critical                                                                                                              |
-| Expected Result    | Hệ thống phát hiện Database không thể kết nối và gửi cảnh báo.                                                        |
-| Test Method        | Dừng Database hoặc chặn kết nối đến cổng dịch vụ trong môi trường thử nghiệm; kiểm tra kết quả TCP probe và cảnh báo. |
-| Recovery Condition | TCP probe thành công trở lại và Alert chuyển sang Resolved.                                                           |
-| Related Problem    | PRB07 – Database unreachable                                                                                          |
+| Alert ID | AS-07 |
+| Tên tình huống | Database Unreachable |
+| Mô tả | Không thể thiết lập kết nối đến cổng dịch vụ Database hoặc Database không thể cung cấp dữ liệu cho exporter. |
+| Metric chính | `probe_success` (TCP) |
+| Metric hỗ trợ | `up` của Database Exporter; SQL Availability Check nếu được triển khai |
+| Trigger Condition | TCP probe đến cổng Database thất bại liên tục trong khoảng thời gian F_DB. |
+| Severity | Critical |
+| Expected Result | Hệ thống phát hiện Database không thể kết nối và gửi cảnh báo. |
+| Test Method | Dừng Database hoặc chặn kết nối đến cổng dịch vụ trong môi trường thử nghiệm; kiểm tra kết quả TCP probe và cảnh báo. |
+| Recovery Condition | TCP probe thành công trở lại và Alert chuyển sang Resolved. |
+| Related Problem | PRB07 – Database unreachable |
 
 Lưu ý:
 
@@ -370,6 +396,8 @@ Lưu ý:
 - Counter notification thất bại là dữ liệu tích lũy, cần sử dụng `rate()` hoặc `increase()` để phân tích trong một khoảng thời gian.
 - Việc gửi notification thành công không chứng minh người nhận cuối cùng đã đọc thông báo.
 - Cần kiểm thử end-to-end nếu muốn xác nhận notification thực sự đến kênh nhận.
+- Nếu receiver đang gặp lỗi gửi notification, Alert AS-10 có thể được phát hiện nhưng không đảm bảo notification được gửi thành công qua chính receiver đó.
+- Muốn phát hiện và thông báo độc lập khi kênh notification chính gặp sự cố, cần xem xét một receiver hoặc cơ chế giám sát độc lập.
 
 ## 8. Quy tắc Alert Inhibition
 
@@ -390,6 +418,11 @@ Alert Inhibition được sử dụng để hạn chế các cảnh báo thứ c
 - Label dùng cho inhibition phải được gắn nhất quán giữa các Alert liên quan.
 - Không nên mặc định mọi Scrape Failure đều do Host Down.
 - Các cảnh báo liên quan đến chính Prometheus hoặc Alertmanager không nên bị hạn chế chỉ vì một máy chủ đích gặp sự cố.
+- Chưa kích hoạt inhibition dựa trên AS-04 cho đến khi xác minh ICMP probe hoạt động đáng tin cậy trong môi trường thử nghiệm.
+- Chỉ áp dụng inhibition khi cảnh báo gốc và cảnh báo phụ thuộc có cùng thông tin định danh máy chủ và có đủ căn cứ xác định quan hệ nguyên nhân.
+- Cần kiểm thử trường hợp Web Service hoặc Database bị lỗi trong khi Host vẫn hoạt động để bảo đảm AS-05 và AS-07 vẫn được phát cảnh báo.
+- Cần bảo đảm cảnh báo Host Down được phát hiện trước thời điểm notification của các cảnh báo phụ thuộc được gửi, nếu muốn sử dụng inhibition để hạn chế notification trùng lặp.
+- Không áp dụng inhibition của Host Down cho các cảnh báo giám sát chính Prometheus hoặc Alertmanager.
 
 Lưu ý:
 
@@ -421,6 +454,19 @@ Lưu ý:
 | AS-09    | Prometheus Scrape Target Failure  | `up`                                      | PRB09         | Must     | Critical/Warning | Draft      |
 | AS-10    | Alertmanager Notification Failure | `alertmanager_notifications_failed_total` | PRB10         | Should   | Critical/Warning | Draft      |
 
+| Alert ID | Acceptance Criteria liên quan |
+| :------- | :---------------------------- |
+| AS-01    | AC04, AC09, AC10, AC15        |
+| AS-02    | AC05, AC09, AC10, AC15        |
+| AS-03    | AC06, AC09, AC10, AC15        |
+| AS-04    | AC03, AC09, AC10, AC11, AC15  |
+| AS-05    | AC07, AC09, AC10, AC11, AC15  |
+| AS-06    | Chưa có AC trực tiếp          |
+| AS-07    | AC08, AC09, AC10, AC11, AC15  |
+| AS-08    | Chưa có AC trực tiếp          |
+| AS-09    | Chưa có AC trực tiếp          |
+| AS-10    | Chưa có AC trực tiếp          |
+
 Ghi chú:
 
 - Priority được kế thừa từ mức ưu tiên của Problem Survey.
@@ -428,25 +474,31 @@ Ghi chú:
 - Không nên đồng nhất Priority của yêu cầu với Severity của Alert.
 - Tên Metric DB cần được xác nhận sau khi chọn Database và exporter.
 - `probe_success` được sử dụng cho nhiều loại probe; cần phân biệt bằng `job`, `instance` và các Labels phù hợp.
+- AC09 và AC10 là các tiêu chí áp dụng chung cho notification và thông báo phục hồi.
+- AC11 áp dụng cho cơ chế hạn chế cảnh báo trùng lặp giữa Host và các dịch vụ phụ thuộc.
+- AC15 áp dụng cho các tình huống được quy định trong AC03–AC08.
+- AS-06, AS-08 và AS-10 chưa có Acceptance Criteria kiểm thử trực tiếp trong bản dự thảo hiện tại.
+- PRB09 được phân loại Must nhưng chưa có Acceptance Criteria trực tiếp. Cần xem xét bổ sung tiêu chí nghiệm thu cho AS-09 trước khi chốt phạm vi Prototype.
+- Bảng ánh xạ này là dự thảo và cần cập nhật khi Acceptance Criteria được thống nhất chính thức.
 
 ## 10. Những điểm cần xác nhận
 
-| Nội dung                                    | Trạng thái    | Hướng xử lý                                             |
-| ------------------------------------------- | ------------- | ------------------------------------------------------- |
-| Ngưỡng CPU Usage và thời gian duy trì       | Chưa chốt     | Xác định trong giai đoạn Baseline                       |
-| Ngưỡng RAM Usage và thời gian duy trì       | Chưa chốt     | Xác định trong giai đoạn Baseline                       |
-| Ngưỡng Disk Usage                           | Chưa chốt     | Xác định filesystem và ngưỡng phù hợp                   |
-| Thời gian phát hiện Host Down               | Chưa chốt     | Thống nhất probe interval, timeout và thời gian duy trì |
-| Phương pháp ICMP probe                      | Chưa xác minh | Kiểm tra quyền và cấu hình mạng                         |
-| HTTP module và mã trạng thái được chấp nhận | Chưa chốt     | Xác định trong cấu hình Blackbox Exporter               |
-| Ngưỡng Web Response Time                    | Chưa chốt     | Xác định thấp hơn probe timeout                         |
-| Chọn MySQL hay PostgreSQL                   | Chưa chốt     | Phối hợp Nhóm 2 và PM                                   |
-| Metric Database Connections                 | Chưa xác minh | Kiểm tra sau khi chọn DB và exporter                    |
-| Phương pháp SQL Availability Check          | Tùy chọn      | Xác nhận có đưa vào Prototype hay không                 |
-| Kênh gửi notification                       | Chưa chốt     | Telegram dự kiến, cần xác nhận                          |
-| Metric Alertmanager                         | Chưa xác minh | Cấu hình scrape job và kiểm tra endpoint `/metrics`     |
-| Label chung phục vụ Alert Inhibition        | Chưa chốt     | Thống nhất label `host` hoặc `vm`                       |
-| Phạm vi giám sát Monitoring Server          | Chưa chốt     | Xem xét cơ chế giám sát độc lập                         |
+| Nội dung                                    | Trạng thái    | Hướng xử lý                                                                                               | Người phụ trách                   | Thời hạn dự kiến              |
+| :------------------------------------------ | :------------ | :-------------------------------------------------------------------------------------------------------- | :-------------------------------- | :---------------------------- |
+| Ngưỡng CPU Usage và thời gian duy trì       | Chưa chốt     | Xác định ngưỡng cảnh báo và thời gian duy trì trong giai đoạn Baseline                                    | Nhóm 1 / Nhóm 4                   | Tuần 6 (06–12/12/2026)        |
+| Ngưỡng RAM Usage và thời gian duy trì       | Chưa chốt     | Xác định ngưỡng cảnh báo và thời gian duy trì trong giai đoạn Baseline                                    | Nhóm 1 / Nhóm 4                   | Tuần 6 (06–12/12/2026)        |
+| Ngưỡng Disk Usage                           | Chưa chốt     | Xác định filesystem được giám sát, ngưỡng cảnh báo và thời gian duy trì phù hợp                           | Nhóm 1 / Nhóm 2 / Nhóm 4          | Tuần 6 (06–12/12/2026)        |
+| Thời gian phát hiện Host Down               | Chưa chốt     | Thống nhất probe interval, timeout và thời gian duy trì điều kiện cảnh báo (`for`)                        | Nhóm 1 / Nhóm 2 / Nhóm 3 / Nhóm 4 | Tuần 6 (06–12/12/2026)        |
+| Phương pháp ICMP probe                      | Chưa xác minh | Kiểm tra quyền ICMP và cấu hình mạng; xác định phương án thay thế nếu ICMP không khả dụng                 | Nhóm 1 / Nhóm 2 / Nhóm 3          | Tuần 6 (06–12/12/2026)        |
+| HTTP module và mã trạng thái được chấp nhận | Chưa chốt     | Xác định module kiểm tra, HTTP method, mã trạng thái được chấp nhận và cấu hình Blackbox Exporter         | Nhóm 1 / Nhóm 3                   | Tuần 6 (06–12/12/2026)        |
+| Ngưỡng Web Response Time                    | Chưa chốt     | Xác định dựa trên yêu cầu hiệu năng và tiêu chí nghiệm thu; kiểm tra tương quan với probe timeout         | Nhóm 1 / Nhóm 3 / Nhóm 4          | Tuần 6 (06–12/12/2026)        |
+| Chọn MySQL hay PostgreSQL                   | Chưa chốt     | Đánh giá mức độ phù hợp với môi trường triển khai, exporter và khả năng kiểm thử; phối hợp PM để xác nhận | Nhóm 1 / Nhóm 2 / Nhóm 3 / PM     | Trước Tuần 6                  |
+| Metric Database Connections                 | Chưa xác minh | Kiểm tra metric khả dụng sau khi chọn DB và exporter; xác định cách thu thập và ngưỡng cảnh báo           | Nhóm 1 / Nhóm 3 / Nhóm 4          | Sau khi chốt DB               |
+| Phương pháp SQL Availability Check          | Tùy chọn      | Xác nhận có đưa kiểm tra truy vấn SQL (ví dụ `SELECT 1`) vào Prototype hay không                          | Team Leader / Mentor / Nhóm 3     | Tuần 6 (06–12/12/2026)        |
+| Kênh gửi notification                       | Chưa chốt     | Telegram dự kiến; PM/Mentor xác nhận, Nhóm 3 đánh giá khả năng tích hợp và triển khai                     | PM / Mentor / Nhóm 3              | Trước 28/11/2026              |
+| Metric Alertmanager                         | Chưa xác minh | Cấu hình scrape job và kiểm tra endpoint `/metrics`; xác định các metric cần theo dõi                     | Nhóm 3                            | Giai đoạn triển khai          |
+| Label chung phục vụ Alert Inhibition        | Chưa chốt     | Thống nhất label định danh máy chủ như `host` hoặc `vm`, bảo đảm các alert liên quan sử dụng nhất quán    | Nhóm 1 / Nhóm 3                   | Trước giai đoạn thiết kế rule |
+| Phạm vi giám sát Monitoring Server          | Chưa chốt     | Xác định các thành phần cần giám sát và cơ chế phát hiện khi hệ thống monitoring ngừng hoạt động          | Nhóm 1 / Nhóm 3 / Mentor          | Tuần 6 (06–12/12/2026)        |
 
 ## 11. Tài liệu tham khảo
 
@@ -475,6 +527,7 @@ Ghi chú:
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 21/11/2026 | Tạo bản nháp Alert Scenarios, xác định 10 tình huống cảnh báo thuộc nhóm Host, Web, Database và Monitoring.                                                                                                                |
 | 21/11/2026 | Chuẩn hóa cấu trúc tài liệu theo Metrics Inventory; bổ sung nguyên tắc xây dựng Alert, phân biệt Detection Time và Notification Time, làm rõ TCP/SQL, Host Down/Scrape Failure, Alert Inhibition và các điểm cần xác nhận. |
+| 21/11/2026 | Bổ sung quy ước tham số cảnh báo, làm rõ thời gian xử lý notification, điều kiện Trigger/Recovery, Alert Inhibition và ánh xạ Acceptance Criteria.                                                                         |
 
 ---
 
