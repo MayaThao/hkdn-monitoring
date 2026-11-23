@@ -159,3 +159,47 @@ Prometheus có thể truy cập Node Exporter thông qua Tailscale, thu thập m
 Kết quả kiểm tra trên Prometheus UI và truy vấn PromQL đều xác nhận VM2 hoạt động bình thường trong hệ thống giám sát.
 
 SCRUM-30 đã hoàn thành về mặt kỹ thuật.
+
+## 11. Bằng chứng thực hiện (Evidence)
+
+Các hình ảnh dưới đây ghi nhận quá trình cấu hình, kiểm tra và xác minh việc tích hợp VM2 Webserver vào Prometheus Monitoring.
+
+### Evidence 1 – Prometheus Targets
+
+**File:** `prometheus-targets-vm2.png`
+
+Xác nhận Target `vm2-webserver` đã được Prometheus phát hiện và đang hoạt động với trạng thái `UP`, đạt `1/1 up`.
+
+![Prometheus Targets VM2](../../monitoring/evidence/prometheus-targets-vm2.png)
+
+### Evidence 2 – Prometheus Query
+
+**File:** `prometheus-query-vm2.png`
+
+Xác nhận truy vấn `up{job="vm2-webserver"}` trả về giá trị `1`, chứng minh Prometheus thu thập dữ liệu từ VM2 thành công.
+
+![Prometheus Query VM2](../../monitoring/evidence/prometheus-query-vm2.png)
+
+### Evidence 3 – Kiểm tra cấu hình Prometheus
+
+**File:** `promtool-check.png`
+
+Ghi nhận kết quả kiểm tra cấu hình bằng `promtool check config`, xác nhận cấu hình Prometheus hợp lệ.
+
+![Promtool Check](../../monitoring/evidence/promtool-check.png)
+
+### Evidence 4 – Trạng thái Prometheus Service
+
+**File:** `prometheus-service-status.png`
+
+Ghi nhận trạng thái dịch vụ Prometheus sau khi cập nhật cấu hình và khởi động lại, xác nhận service đang hoạt động.
+
+![Prometheus Service Status](../../monitoring/evidence/prometheus-service-status.png)
+
+### Evidence 5 – Node Exporter HTTP Endpoint
+
+**File:** `node-exporter-http.png`
+
+Ghi nhận kết quả kiểm tra endpoint Node Exporter trên VM2, xác nhận endpoint có thể truy cập và trả về HTTP Status `200`.
+
+![Node Exporter HTTP](../../monitoring/evidence/node-exporter-http.png)
