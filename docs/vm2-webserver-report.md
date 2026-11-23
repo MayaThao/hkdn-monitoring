@@ -1,79 +1,74 @@
-# HƯỚNG DẪN DỰNG VÀ TRIỂN KHAI VM2 – WEB SERVER
+# SCRUM-15 – TRIỂN KHAI VM2 WEB SERVER
 
-## 1. Giới thiệu
+## 1. Mục tiêu
 
-Tài liệu hướng dẫn quá trình tạo, cấu hình và triển khai máy ảo VM2 – Web Server sử dụng Ubuntu Server trên VirtualBox.
+Tạo và cấu hình máy ảo VM2 sử dụng Ubuntu Server trên nền tảng VirtualBox, thiết lập môi trường mạng và đảm bảo khả năng kết nối giữa VM2 với VM1 – Monitoring Server.
 
-VM2 đảm nhiệm vai trò máy chủ Web, cung cấp dịch vụ Nginx và Node Exporter để VM1 – Monitoring Server có thể truy cập, thu thập dữ liệu và giám sát tài nguyên hệ thống.
+Thực hiện cài đặt và kiểm tra dịch vụ SSH nhằm hỗ trợ quản trị máy chủ từ xa. Đồng thời, cài đặt và đăng nhập Tailscale để hỗ trợ kết nối giữa các thiết bị trong hệ thống.
 
-### 1.1. Mục tiêu
+Bên cạnh đó, xây dựng tài liệu hướng dẫn dựng máy và cấu hình VM2 để các thành viên trong nhóm có thể tham khảo và thực hiện lại khi cần thiết.
 
-- Tạo máy ảo VM2 sử dụng Ubuntu Server.
-- Cấu hình mạng NAT và Host-only.
-- Thiết lập địa chỉ IP tĩnh cho VM2.
-- Cài đặt và cấu hình SSH.
-- Cài đặt Nginx Web Server.
-- Cài đặt Node Exporter.
-- Thiết lập Tailscale để hỗ trợ kết nối từ xa.
-- Kiểm tra khả năng truy cập các dịch vụ từ VM1.
+## 2. Thông tin cấu hình VM2
 
-### 1.2. Thông tin VM2
-
-| Thành phần | Cấu hình |
+| Thành phần | Thông tin |
 |---|---|
-| Tên máy | VM2 – Web Server |
+| Tên máy ảo | VM2-Webserver |
 | Hệ điều hành | Ubuntu Server |
 | Nền tảng ảo hóa | VirtualBox |
-| Card mạng 1 | NAT |
-| Card mạng 2 | Host-only |
-| Giao diện NAT | enp0s3 |
-| IP NAT | 10.0.2.15/24 |
-| Giao diện Host-only | enp0s8 |
-| IP Host-only | 192.168.56.20/24 |
+| Adapter 1 | NAT |
+| Adapter 2 | Host-only |
+| Giao diện mạng 1 | enp0s3 |
+| Địa chỉ IP NAT | 10.0.2.15/24 |
+| Giao diện mạng 2 | enp0s8 |
+| Địa chỉ IP Host-only | 192.168.56.20/24 |
 | Gateway NAT | 10.0.2.2 |
 | DNS | 8.8.8.8 và 8.8.4.4 |
 
-## 2. Chuẩn bị môi trường
+VM2 sử dụng hai card mạng với mục đích:
 
-### 2.1. Phần mềm cần thiết
+- NAT: Cung cấp kết nối Internet cho máy ảo.
+- Host-only: Tạo kết nối mạng nội bộ giữa VM1 và VM2.
 
-- Oracle VirtualBox.
-- File ISO Ubuntu Server.
-- Máy tính có kết nối Internet.
+## 3. Nội dung thực hiện
 
-### 2.2. Tạo máy ảo VM2
+### 3.1. Tạo máy ảo VM2 trên VirtualBox
 
-1. Mở VirtualBox.
-2. Chọn New để tạo máy ảo mới.
-3. Đặt tên máy là VM2-Webserver.
-4. Chọn file ISO Ubuntu Server.
-5. Thiết lập bộ nhớ RAM, CPU và dung lượng ổ cứng phù hợp với tài nguyên máy tính.
-6. Tiến hành cài đặt Ubuntu Server.
-7. Tạo tài khoản đăng nhập và mật khẩu.
-8. Hoàn tất quá trình cài đặt và khởi động máy ảo.
+**Bước 1: Tạo máy ảo**
 
-Lưu ý: Tài liệu này không cố định dung lượng RAM, CPU và ổ cứng; cần ghi lại thông số thực tế đã sử dụng khi dựng máy.
+- Mở Oracle VirtualBox.
+- Chọn New để tạo máy ảo mới.
+- Đặt tên máy ảo là VM2-Webserver.
+- Chọn file ISO Ubuntu Server.
+- Thiết lập RAM, CPU và dung lượng ổ cứng phù hợp.
+- Tiến hành cài đặt Ubuntu Server.
 
-## 3. Cấu hình mạng VM2
+**Bước 2: Cài đặt Ubuntu Server**
 
-VM2 sử dụng hai card mạng để vừa kết nối Internet vừa giao tiếp với VM1.
+- Thiết lập tên máy chủ.
+- Tạo tài khoản người dùng và mật khẩu.
+- Hoàn tất quá trình cài đặt hệ điều hành.
+- Khởi động lại máy ảo và đăng nhập vào Ubuntu Server.
 
-### 3.1. Cấu hình VirtualBox
+### 3.2. Cấu hình mạng cho VM2
 
-Mở Settings của máy ảo VM2.
+VM2 được cấu hình hai card mạng NAT và Host-only để đảm bảo kết nối Internet và giao tiếp với VM1.
 
-**Adapter 1:**
+**Bước 1: Cấu hình trên VirtualBox**
+
+Mở Settings → Network của VM2.
+
+Adapter 1:
 - Enable Network Adapter.
 - Attached to: NAT.
 
-**Adapter 2:**
+Adapter 2:
 - Enable Network Adapter.
 - Attached to: Host-only Adapter.
-- Chọn Host-only Network tương ứng với VM1.
+- Chọn mạng Host-only tương ứng với VM1.
 
-### 3.2. Kiểm tra card mạng
+**Bước 2: Kiểm tra giao diện mạng**
 
-Sau khi khởi động Ubuntu, mở Terminal:
+Mở Terminal trên Ubuntu và nhập:
 
 ```bash
 ip -br a
@@ -83,15 +78,15 @@ Kiểm tra hai giao diện mạng:
 - enp0s3: NAT.
 - enp0s8: Host-only.
 
-### 3.3. Cấu hình IP tĩnh
+**Bước 3: Cấu hình IP tĩnh bằng Netplan**
 
-Mở file cấu hình Netplan:
+Mở file cấu hình:
 
 ```bash
 sudo nano /etc/netplan/00-installer-config.yaml
 ```
 
-Cấu hình tham khảo theo địa chỉ mạng đã sử dụng:
+Nội dung cấu hình:
 
 ```yaml
 network:
@@ -125,13 +120,13 @@ Kiểm tra cấu hình:
 sudo netplan generate
 ```
 
-Áp dụng:
+Áp dụng cấu hình:
 
 ```bash
 sudo netplan apply
 ```
 
-Kiểm tra lại:
+Kiểm tra lại địa chỉ IP:
 
 ```bash
 ip -br a
@@ -142,42 +137,65 @@ Kết quả mong muốn:
 - enp0s3: 10.0.2.15/24.
 - enp0s8: 192.168.56.20/24.
 
-Kiểm tra kết nối Internet:
+### 3.3. Kiểm tra kết nối giữa VM1 và VM2
+
+Sau khi cấu hình địa chỉ IP, tiến hành kiểm tra khả năng giao tiếp giữa hai máy.
+
+**Bước 1: Kiểm tra kết nối từ VM2 đến VM1**
+
+Trên VM2, nhập:
 
 ```bash
-ping -c 4 8.8.8.8
+ping -c 4 192.168.56.10
 ```
 
-## 4. Cài đặt và cấu hình SSH
+**Bước 2: Kiểm tra kết nối từ VM1 đến VM2**
 
-SSH cho phép quản trị viên truy cập VM2 từ xa thông qua giao thức Secure Shell.
+Trên VM1, nhập:
 
-### 4.1. Cài đặt OpenSSH Server
+```bash
+ping -c 4 192.168.56.20
+```
+
+Nếu nhận được phản hồi từ địa chỉ IP của máy đích thì hai máy đã có thể giao tiếp qua mạng Host-only.
+
+### 3.4. Cài đặt và cấu hình SSH
+
+SSH (Secure Shell) là giao thức cho phép quản trị viên truy cập và điều khiển máy chủ từ xa thông qua kết nối mạng.
+
+**Bước 1: Cập nhật hệ thống**
 
 ```bash
 sudo apt update
+```
+
+**Bước 2: Cài đặt OpenSSH Server**
+
+```bash
 sudo apt install openssh-server -y
 ```
 
-### 4.2. Khởi động SSH
+**Bước 3: Khởi động và kích hoạt SSH**
 
 ```bash
 sudo systemctl enable --now ssh
 ```
 
-### 4.3. Kiểm tra trạng thái SSH
+**Bước 4: Kiểm tra trạng thái dịch vụ**
 
 ```bash
 sudo systemctl status ssh
 ```
 
-Kết quả mong muốn:
+Nếu xuất hiện:
 
 ```text
 Active: active (running)
 ```
 
-### 4.4. Kiểm tra cổng SSH
+thì dịch vụ SSH đang hoạt động.
+
+**Bước 5: Kiểm tra cổng SSH**
 
 ```bash
 sudo ss -tlnp | grep :22
@@ -185,271 +203,102 @@ sudo ss -tlnp | grep :22
 
 SSH sử dụng cổng TCP 22.
 
-### 4.5. Kiểm tra kết nối từ VM1
+**Bước 6: Kiểm tra kết nối SSH từ VM1**
 
-Từ VM1, thực hiện:
+Trên VM1, nhập:
 
 ```bash
 ssh <username>@192.168.56.20
 ```
 
-Thay `<username>` bằng tài khoản Ubuntu thực tế trên VM2.
+Thay `<username>` bằng tên tài khoản Ubuntu trên VM2.
 
-Nếu xuất hiện yêu cầu nhập mật khẩu và đăng nhập được vào VM2 thì kết nối SSH thành công.
+Nếu đăng nhập thành công thì VM1 có thể truy cập VM2 thông qua SSH.
 
-## 5. Cài đặt Nginx Web Server
+### 3.5. Cài đặt và đăng nhập Tailscale
 
-Nginx là dịch vụ Web Server có nhiệm vụ tiếp nhận và xử lý yêu cầu HTTP từ các máy khách.
+Tailscale là giải pháp mạng riêng hỗ trợ kết nối các thiết bị thông qua mạng riêng ảo.
 
-### 5.1. Cài đặt Nginx
-
-```bash
-sudo apt update
-sudo apt install nginx -y
-```
-
-### 5.2. Khởi động dịch vụ
-
-```bash
-sudo systemctl enable --now nginx
-```
-
-### 5.3. Kiểm tra trạng thái
-
-```bash
-sudo systemctl status nginx
-```
-
-Kết quả mong muốn:
-
-```text
-Active: active (running)
-```
-
-### 5.4. Kiểm tra Nginx trên VM2
-
-```bash
-curl -I http://localhost
-```
-
-Kết quả mong muốn:
-
-```text
-HTTP/1.1 200 OK
-Server: nginx
-```
-
-### 5.5. Truy cập trang Web
-
-Mở trình duyệt và nhập:
-
-```text
-http://192.168.56.20
-```
-
-Nếu xuất hiện trang Welcome to nginx! thì Nginx đã được triển khai thành công.
-
-## 6. Cài đặt Node Exporter
-
-Node Exporter là công cụ thu thập thông số tài nguyên hệ thống Linux như CPU, RAM, ổ đĩa và mạng.
-
-Các dữ liệu này có thể được Prometheus trên VM1 thu thập để phục vụ việc giám sát.
-
-### 6.1. Cài đặt Node Exporter
-
-```bash
-sudo apt update
-sudo apt install prometheus-node-exporter -y
-```
-
-### 6.2. Khởi động dịch vụ
-
-```bash
-sudo systemctl enable --now prometheus-node-exporter
-```
-
-### 6.3. Kiểm tra trạng thái
-
-```bash
-sudo systemctl status prometheus-node-exporter
-```
-
-Kết quả mong muốn:
-
-```text
-Active: active (running)
-```
-
-### 6.4. Kiểm tra dữ liệu Metrics
-
-```bash
-curl http://localhost:9100/metrics
-```
-
-Nếu xuất hiện các thông số như:
-
-```text
-node_cpu_seconds_total
-node_memory_MemTotal_bytes
-node_filesystem_size_bytes
-```
-
-thì Node Exporter đang hoạt động.
-
-### 6.5. Kiểm tra cổng dịch vụ
-
-```bash
-sudo ss -tulnp | grep -E ':80|:9100'
-```
-
-Hai cổng cần kiểm tra:
-
-| Cổng | Dịch vụ |
-|---|---|
-| TCP 80 | Nginx |
-| TCP 9100 | Node Exporter |
-
-## 7. Cài đặt và kết nối Tailscale
-
-Tailscale được sử dụng để hỗ trợ kết nối các máy trong mạng riêng, kể cả khi không cùng mạng LAN.
-
-### 7.1. Kiểm tra dịch vụ
+**Bước 1: Kiểm tra dịch vụ Tailscale**
 
 ```bash
 sudo systemctl status tailscaled
 ```
 
-### 7.2. Kết nối tài khoản
+**Bước 2: Đăng nhập Tailscale**
 
 ```bash
 sudo tailscale up
 ```
 
-Mở đường dẫn đăng nhập được cung cấp và xác thực bằng tài khoản Tailscale của nhóm.
+Mở đường dẫn đăng nhập được cung cấp trên Terminal và xác thực bằng tài khoản Tailscale của nhóm.
 
-### 7.3. Kiểm tra trạng thái
+**Bước 3: Kiểm tra trạng thái kết nối**
 
 ```bash
 sudo tailscale status
 ```
 
-Kiểm tra địa chỉ IP Tailscale:
+**Bước 4: Kiểm tra địa chỉ IP Tailscale**
 
 ```bash
 sudo tailscale ip -4
 ```
 
-Nếu hiển thị trạng thái Connected và có địa chỉ IP 100.x.x.x thì máy đã kết nối Tailscale.
+Nếu thiết bị hiển thị trạng thái kết nối và có địa chỉ IP Tailscale thì quá trình đăng nhập đã thành công.
 
-## 8. Kiểm tra kết nối VM1 – VM2
+## 4. Kết quả thực hiện
 
-Sau khi hoàn tất các dịch vụ, cần kiểm tra khả năng truy cập từ VM1 – Monitoring Server đến VM2 – Web Server.
+Sau quá trình triển khai, VM2 đã đạt được các kết quả sau:
 
-### 8.1. Kiểm tra kết nối mạng
+- Đã tạo và cài đặt máy ảo Ubuntu Server trên VirtualBox.
+- Đã cấu hình hai card mạng NAT và Host-only.
+- Đã thiết lập địa chỉ IP tĩnh cho VM2.
+- Đã kiểm tra kết nối mạng giữa VM1 và VM2.
+- Đã cài đặt và kích hoạt dịch vụ SSH.
+- Đã kiểm tra khả năng kết nối SSH giữa VM1 và VM2.
+- Đã cài đặt và đăng nhập Tailscale để hỗ trợ kết nối máy chủ.
 
-Trên VM1:
+Các công việc triển khai Nginx Web Server và Node Exporter chưa thuộc phạm vi hoàn thành của giai đoạn này, được chuyển sang kế hoạch thực hiện ở tuần tiếp theo.
 
-```bash
-ping -c 4 192.168.56.20
-```
+## 5. Minh chứng
 
-Nếu nhận được phản hồi từ địa chỉ 192.168.56.20 thì hai máy có thể giao tiếp qua Host-only.
-
-### 8.2. Kiểm tra Nginx từ VM1
-
-```bash
-curl -I http://192.168.56.20
-```
-
-Kết quả mong muốn:
+Hình ảnh minh chứng được lưu trữ tại thư mục:
 
 ```text
-HTTP/1.1 200 OK
+monitoring/evidence/
 ```
 
-### 8.3. Kiểm tra Node Exporter từ VM1
+Danh sách hình ảnh minh chứng cho tuần 3:
 
-```bash
-curl http://192.168.56.20:9100/metrics
-```
+| Tên hình ảnh | Nội dung minh chứng |
+|---|---|
+| `vm2-summary.png` | Cấu hình máy ảo VM2 trên VirtualBox |
+| `vm2-ubuntu-login.png` | Đăng nhập Ubuntu Server |
+| `vm2-network-config.png` | Cấu hình mạng cho VM2 |
+| `vm2-ip-check.png` | Kiểm tra địa chỉ IP |
+| `vm1-vm2-ping.png` | Kiểm tra kết nối VM1 và VM2 |
+| `vm2-ssh-status.png` | Kiểm tra trạng thái dịch vụ SSH |
+| `vm2-tailscale.png` | Trạng thái kết nối Tailscale |
 
-Nếu trả về dữ liệu Metrics thì VM1 đã truy cập được Node Exporter trên VM2.
+Các hình ảnh liên quan đến Nginx và Node Exporter sẽ được bổ sung vào phần minh chứng của giai đoạn triển khai tiếp theo khi các dịch vụ được cài đặt và kiểm tra thực tế.
 
-### 8.4. Kiểm tra SSH từ VM1
+## 6. Công việc tiếp theo
 
-```bash
-ssh <username>@192.168.56.20
-```
+Trong tuần 4, tiếp tục thực hiện các công việc:
 
-Đăng nhập thành công chứng minh SSH trên VM2 có thể được truy cập từ VM1.
+- Cài đặt và cấu hình Nginx Web Server trên VM2.
+- Kiểm tra trạng thái hoạt động của Nginx.
+- Kiểm tra khả năng truy cập Web Server từ VM1 và máy tính cá nhân.
+- Cài đặt và cấu hình Node Exporter trên VM2.
+- Kiểm tra cổng 9100 và khả năng truy cập các chỉ số giám sát.
+- Phối hợp với VM1 để cấu hình Prometheus thu thập dữ liệu từ Node Exporter trên VM2.
 
-## 9. Kiểm tra tổng thể VM2
+## 7. Kết luận
 
-Chạy các lệnh:
+Đã thực hiện các công việc triển khai cơ bản cho VM2 – Web Server theo nhiệm vụ SCRUM-15 trong tuần 3.
 
-```bash
-sudo systemctl status ssh
-sudo systemctl status nginx
-sudo systemctl status prometheus-node-exporter
-sudo systemctl status tailscaled
-```
+Máy ảo Ubuntu Server đã được cài đặt và cấu hình mạng với địa chỉ IP tĩnh. Kết nối giữa VM1 và VM2 đã được kiểm tra, dịch vụ SSH được triển khai nhằm hỗ trợ quản trị từ xa và Tailscale được cài đặt để hỗ trợ kết nối máy chủ.
 
-Kiểm tra địa chỉ IP:
+Các công việc triển khai Nginx Web Server và Node Exporter được đưa vào kế hoạch tuần 4 nhằm tiếp tục hoàn thiện VM2 và tích hợp với hệ thống giám sát Prometheus trên VM1.
 
-```bash
-ip -br a
-```
-
-Kiểm tra các cổng:
-
-```bash
-sudo ss -tulnp | grep -E ':22|:80|:9100'
-```
-
-Các dịch vụ cần hoạt động:
-
-| Dịch vụ | Cổng | Trạng thái mong muốn |
-|---|---:|---|
-| SSH | 22 | Active |
-| Nginx | 80 | Active |
-| Node Exporter | 9100 | Active |
-| Tailscale | Thay đổi theo cấu hình | Connected |
-
-## 10. Kết quả đạt được
-
-Sau quá trình triển khai, VM2 – Web Server đã được cài đặt và cấu hình các dịch vụ cần thiết.
-
-Các kết quả chính:
-
-- Hoàn thành tạo máy ảo Ubuntu Server trên VirtualBox.
-- Cấu hình NAT và Host-only.
-- Thiết lập địa chỉ IP tĩnh 10.0.2.15 và 192.168.56.20.
-- Cài đặt và kiểm tra dịch vụ SSH.
-- Cài đặt Nginx và kiểm tra trang Web bằng HTTP.
-- Cài đặt Node Exporter và kiểm tra dữ liệu Metrics tại cổng 9100.
-- Kết nối Tailscale.
-- Kiểm tra khả năng truy cập dịch vụ VM2 từ VM1.
-
-## 11. Danh sách hình ảnh minh chứng
-
-Các ảnh minh chứng được lưu trong thư mục `monitoring/evidence/`.
-
-1. Giao diện cấu hình máy ảo VM2 trên VirtualBox.
-2. Kiểm tra hostname và tài khoản Ubuntu.
-3. Kiểm tra địa chỉ IP bằng lệnh `ip -br a`.
-4. Cấu hình Netplan.
-5. Kiểm tra trạng thái SSH.
-6. Kiểm tra kết nối VM1 – VM2.
-7. Kiểm tra trạng thái Nginx.
-8. Truy cập trang Welcome to nginx.
-9. Kiểm tra trạng thái Node Exporter.
-10. Kiểm tra dữ liệu Metrics.
-11. Kiểm tra hai cổng 80 và 9100.
-12. Kiểm tra kết nối Tailscale.
-13. Kiểm tra VM1 truy cập Nginx và Node Exporter.
-
-## 12. Kết luận
-
-VM2 – Web Server đã được triển khai trên nền tảng Ubuntu Server bằng VirtualBox. Các dịch vụ SSH, Nginx và Node Exporter được cài đặt nhằm phục vụ quản trị, cung cấp dịch vụ Web và thu thập dữ liệu tài nguyên hệ thống.
-
-Việc kết nối VM1 và VM2 qua mạng Host-only cùng với Tailscale giúp nhóm có thể kiểm tra và quản lý các máy chủ trong môi trường thực nghiệm. Đây là cơ sở để tiếp tục triển khai và hoàn thiện hệ thống giám sát máy chủ bằng Prometheus và Grafana.
