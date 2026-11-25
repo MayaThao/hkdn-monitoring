@@ -166,5 +166,5 @@ Telegram Bot đã sẵn sàng cho bước tích hợp với Prometheus và Alert
 Thư mục lưu bằng chứng:
 
 ```text
-monitoring/evidence/25-11-2026
+monitoring/evidence/25-11-2026/SCRUM-35/
 ```
