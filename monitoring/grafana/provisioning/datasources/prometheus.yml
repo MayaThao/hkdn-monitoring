@@ -1,0 +1,20 @@
+# SCRUM-17 [N3-3B] – Grafana Data source: Prometheus
+#
+# Cấu hình provisioning để Grafana tự thêm Prometheus làm Data source khi khởi động.
+# Triển khai trên máy ảo:
+#   sudo cp prometheus.yml /etc/grafana/provisioning/datasources/prometheus.yml
+#   sudo systemctl restart grafana-server
+#
+# Tương đương thao tác thủ công trên giao diện:
+#   Connections → Data sources → Add data source → Prometheus → Save & test
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    # Prometheus cài cùng máy ảo (SCRUM-12). Nếu khác máy, đổi thành http://<IP-Prometheus>:9090
+    url: http://localhost:9090
+    isDefault: true
+    editable: true
