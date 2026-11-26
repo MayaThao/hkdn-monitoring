@@ -11,7 +11,6 @@
 | Baseline           | baseline.md là nguồn duy nhất cho Y*\*, F*_, X\__, W, T và R. Không tự nhập ngưỡng thay thế.                                                              |
 | Phạm vi            | P = kiểm thử prototype trên 3 VM; M = mô phỏng logic trên chính 3 VM; K = khảo sát, không nghiệm thu.                                                     |
 | Nguồn bộ test case | Chuyển từ Test_Case_HKDN_Monitoring_Tuan_4.docx.                                                                                                          |
-| Nguồn yêu cầu      | requirements-fr-nfr (1).md — SCRUM-23, Draft; tham chiếu acceptance_criteria_0.3.md và baseline.md.                                                       |
 | Cách dùng          | Lọc theo ID/Scenario/ưu tiên; nhập kết quả, bằng chứng, defect và trạng thái trên sheet Test Cases.                                                       |
 
 ## Testcase
