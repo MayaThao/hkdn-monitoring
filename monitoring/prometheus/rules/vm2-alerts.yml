@@ -1,0 +1,11 @@
+groups:
+  - name: vm2-scrape-alerts
+    rules:
+      - alert: VM2ScrapeFailure
+        expr: up{job="vm2-webserver", instance="100.96.202.53:9100"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "VM2 Node Exporter scrape failure"
+          description: "Prometheus cannot scrape VM2 Node Exporter at {{ $labels.instance }} for more than 2 minutes."
