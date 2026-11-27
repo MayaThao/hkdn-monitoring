@@ -203,3 +203,52 @@ Ghi nhận trạng thái dịch vụ Prometheus sau khi cập nhật cấu hình
 Ghi nhận kết quả kiểm tra endpoint Node Exporter trên VM2, xác nhận endpoint có thể truy cập và trả về HTTP Status `200`.
 
 ![Node Exporter HTTP](../../monitoring/evidence/node-exporter-http.png)
+
+---
+
+## 12. Các thành phần bổ sung trong Tuần 4
+
+Ngoài việc tích hợp VM2 Webserver, trong Tuần 4 hệ thống Monitoring Server tiếp tục được bổ sung và cấu hình các thành phần phục vụ Alerting.
+
+### 12.1. Alertmanager
+
+- Cài đặt và cấu hình Alertmanager trên Monitoring Server Ubuntu.
+- Alertmanager sử dụng endpoint local: `127.0.0.1:9093`.
+- Cập nhật cấu hình Prometheus để kết nối Alertmanager tại endpoint trên.
+- Kiểm tra cấu hình Prometheus bằng `promtool check config` trước khi áp dụng.
+
+Cấu hình kết nối Alertmanager trong `/etc/prometheus/prometheus.yml`:
+
+```yaml
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "127.0.0.1:9093"
+```
+
+### 12.2. Khắc phục DNS để Alertmanager gửi thông báo
+
+Trong quá trình kiểm tra gửi cảnh báo Telegram, server gặp lỗi phân giải DNS. DNS resolver `192.168.100.1` không phản hồi truy vấn DNS. Đã kiểm tra kết nối mạng và xác định server vẫn truy cập Internet qua gateway.
+
+Đã sao lưu cấu hình Netplan và cập nhật DNS của interface `enp0s3` sang:
+
+- `1.1.1.1`
+- `8.8.8.8`
+
+Cấu hình được áp dụng bằng Netplan. Sau thay đổi, kiểm tra phân giải tên miền `api.telegram.org` và kết nối HTTPS đến Telegram API đều thành công. Thử gửi cảnh báo Telegram cũng nhận thành công.
+
+### 12.3. Đồng bộ thời gian – vấn đề cần tiếp tục theo dõi
+
+Server từng gặp hiện tượng sai lệch thời gian. Đã xử lý đồng bộ nhưng tình trạng tái xuất hiện sau khi tắt và khởi động lại máy. Nguyên nhân chưa được xác định; cần tiếp tục kiểm tra NTP/time synchronization và tính ổn định sau reboot.
+
+### 12.4. Tổng hợp thành phần và cấu hình bổ sung trong Tuần 4
+
+| Thành phần / cấu hình | Nội dung | Trạng thái |
+|---|---|---|
+| Prometheus | Scrape metrics VM2 qua Node Exporter | Hoạt động, target UP |
+| Node Exporter | Endpoint VM2 tại port 9100 | Endpoint trả HTTP 200 |
+| Alertmanager | Cài đặt và cấu hình trên Monitoring Server | Đã cấu hình |
+| Prometheus–Alertmanager | Kết nối qua `127.0.0.1:9093` | Đã cấu hình |
+| DNS Netplan | Đổi DNS enp0s3 sang 1.1.1.1 và 8.8.8.8 | Áp dụng, kiểm tra DNS/HTTPS thành công |
+| Time synchronization | Theo dõi đồng bộ thời gian sau reboot | Còn cần kiểm tra |
